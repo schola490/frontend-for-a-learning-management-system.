@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Amka Skills — Learning Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #10131C; }
+  body { font-family: 'Inter', sans-serif; }
+  button:focus-visible, input:focus-visible { outline: 2px solid #F5A742; outline-offset: 2px; }
+  ::placeholder { color: #6B7089; }
+  @media (prefers-reduced-motion: reduce) { *{ animation: none !important; transition: none !important; } }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect } = React;
+
+/* ---------------------------------------------------------------------
+   AMKA SKILLS — student LMS (standalone HTML build)
+   Design: pre-dawn ink background warming toward amber as progress rises.
+   Signature: the "sunrise arc" — a rising-sun progress indicator used on
+   the hero, course cards, and lesson list.
+--------------------------------------------------------------------- */
+
+/* ---------- minimal inline icon set (no external icon package) ---------- */
+const Icon = ({ children, size = 18, color = "currentColor", style }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    {children}
+  </svg>
+);
+const Home = (p) => <Icon {...p}><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></Icon>;
+const BookOpen = (p) => <Icon {...p}><path d="M2 5c3-1.5 6-1.5 9 0v14c-3-1.5-6-1.5-9 0z"/><path d="M22 5c-3-1.5-6-1.5-9 0v14c3-1.5 6-1.5 9 0z"/></Icon>;
+const Compass = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><path d="M16 8l-4 8-4-2 4-8z"/></Icon>;
+const Award = (p) => <Icon {...p}><circle cx="12" cy="8" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/></Icon>;
+const Bell = (p) => <Icon {...p}><path d="M6 8a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 004 0"/></Icon>;
+const Search = (p) => <Icon {...p}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></Icon>;
+const ChevronLeft = (p) => <Icon {...p}><path d="M15 18l-6-6 6-6"/></Icon>;
+const PlayCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill={p.color||"currentColor"}/></Icon>;
+const CheckCircle2 = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></Icon>;
+const CircleIcon = (p) => <Icon {...p}><circle cx="12" cy="12" r="9"/></Icon>;
+const ClockIcon = (p) => <Icon {...p}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></Icon>;
+const Star = (p) => <Icon {...p}><path d="M12 2l3 7h7l-5.5 4.2L18.5 21 12 16.8 5.5 21l2-7.8L2 9h7z"/></Icon>;
+const Flame = (p) => <Icon {...p}><path d="M12 2c1 4-4 5-4 9a4 4 0 008 0c0-1-1-2-1-2 2 1 3 3 3 5a6 6 0 01-12 0c0-5 3-6 6-12z"/></Icon>;
+const ArrowRight = (p) => <Icon {...p}><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></Icon>;
+const Menu = (p) => <Icon {...p}><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></Icon>;
+
+/* ---------- data ---------- */
+const COURSES = [
+  {
+    id: "digital-marketing",
+    title: "Digital Marketing for Kenyan SMEs",
+    mentor: "Brian Otieno",
+    category: "Marketing",
+    hours: 14,
+    difficulty: "Intermediate",
+    progress: 62,
+    color: "#F5A742",
+    cover: "📈",
+    description: "Run acquisition funnels, budget a WhatsApp + Instagram campaign, and read the numbers that actually move sales.",
+    modules: [
+      { title: "Mapping the Kenyan customer journey", done: true, minutes: 22 },
+      { title: "Paid social on a shoestring budget", done: true, minutes: 35 },
+      { title: "Building a WhatsApp sales funnel", done: true, minutes: 28 },
+      { title: "Reading CAC, LTV and ROAS", done: false, minutes: 31, active: true },
+      { title: "M-Pesa checkout conversion tactics", done: false, minutes: 26 },
+      { title: "Retargeting without a big budget", done: false, minutes: 19 },
+    ],
+  },
+  {
+    id: "web-dev",
+    title: "Practical Web Development",
+    mentor: "Achieng Wanjiru",
+    category: "Tech",
+    hours: 22,
+    difficulty: "Beginner",
+    progress: 28,
+    color: "#4FB6A8",
+    cover: "💻",
+    description: "Ship real client sites: layout systems, responsive design, and deploying a storefront that survives Nairobi's networks.",
+    modules: [
+      { title: "Semantic HTML that clients can edit", done: true, minutes: 18 },
+      { title: "CSS layout: flexbox and grid", done: true, minutes: 33 },
+      { title: "Designing for slow connections", done: false, minutes: 24, active: true },
+      { title: "Forms, validation and feedback states", done: false, minutes: 27 },
+      { title: "Deploying your first storefront", done: false, minutes: 20 },
+    ],
+  },
+  {
+    id: "sales",
+    title: "Consultative Selling for Freelancers",
+    mentor: "Brian Otieno",
+    category: "Sales",
+    hours: 9,
+    difficulty: "Intermediate",
+    progress: 100,
+    color: "#E85D75",
+    cover: "🤝",
+    description: "Price your work with confidence, run discovery calls, and turn a proposal into a signed retainer.",
+    modules: [
+      { title: "Discovery calls that qualify fast", done: true, minutes: 21 },
+      { title: "Pricing without underselling yourself", done: true, minutes: 25 },
+      { title: "Writing proposals clients actually read", done: true, minutes: 19 },
+      { title: "Handling objections calmly", done: true, minutes: 17 },
+    ],
+  },
+  {
+    id: "ecommerce",
+    title: "E-commerce Storefront Fundamentals",
+    mentor: "Naomi Kariuki",
+    category: "Tech",
+    hours: 16,
+    difficulty: "Beginner",
+    progress: 0,
+    color: "#8890AC",
+    cover: "🛒",
+    description: "Structure a product catalog, set up delivery logic for Kenyan counties, and launch a checkout that converts.",
+    modules: [
+      { title: "Product catalog structure", done: false, minutes: 20 },
+      { title: "Delivery zones and pricing logic", done: false, minutes: 24 },
+      { title: "Trust signals for first-time buyers", done: false, minutes: 18 },
+      { title: "Launch week checklist", done: false, minutes: 15 },
+    ],
+  },
+];
+
+const NAV = [
+  { key: "dashboard", label: "Dashboard", icon: Home },
+  { key: "courses", label: "My Courses", icon: BookOpen },
+  { key: "explore", label: "Explore", icon: Compass },
+  { key: "achievements", label: "Achievements", icon: Award },
+];
+
+/* ---------- Sunrise arc: the signature progress element ---------- */
+function SunriseArc({ pct = 0, size = 96, color = "#F5A742", strokeWidth = 8 }) {
+  const r = (size - strokeWidth) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+  const circumference = Math.PI * r;
+  const dash = (pct / 100) * circumference;
+  const sunY = cy - (pct / 100) * (r * 0.72);
+  const sunX = cx - r * 0.9 + (pct / 100) * (r * 1.8);
+  const gradId = "sky-" + color.replace("#", "");
+
+  return (
+    <svg width={size} height={size / 2 + strokeWidth} viewBox={`0 0 ${size} ${size / 2 + strokeWidth}`}>
+      <defs>
+        <linearGradient id={gradId} x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stopColor="#2D3350" />
+          <stop offset="100%" stopColor={color} />
+        </linearGradient>
+      </defs>
+      <path d={`M ${strokeWidth / 2} ${cy} A ${r} ${r} 0 0 1 ${size - strokeWidth / 2} ${cy}`}
+            fill="none" stroke="#232840" strokeWidth={strokeWidth} strokeLinecap="round" />
+      <path d={`M ${strokeWidth / 2} ${cy} A ${r} ${r} 0 0 1 ${size - strokeWidth / 2} ${cy}`}
+            fill="none" stroke={`url(#${gradId})`} strokeWidth={strokeWidth} strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference}`} style={{ transition: "stroke-dasharray 0.6s ease" }} />
+      <circle cx={sunX} cy={Math.max(sunY, strokeWidth)} r={size * 0.075} fill={color}>
+        <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" repeatCount="indefinite" />
+      </circle>
+    </svg>
+  );
+}
+
+function ProgressBar({ pct, color }) {
+  return (
+    <div style={{ height: 6, background: "#232840", borderRadius: 999, overflow: "hidden" }}>
+      <div style={{ width: `${pct}%`, height: "100%", background: `linear-gradient(90deg, #2D3350, ${color})`, borderRadius: 999, transition: "width 0.5s ease" }} />
+    </div>
+  );
+}
+
+function Badge({ children, tone = "default" }) {
+  const tones = {
+    default: { bg: "#232840", fg: "#8890AC" },
+    amber: { bg: "rgba(245,167,66,0.14)", fg: "#F5A742" },
+    teal: { bg: "rgba(79,182,168,0.14)", fg: "#4FB6A8" },
+  };
+  const t = tones[tone];
+  return (
+    <span style={{ background: t.bg, color: t.fg, fontFamily: "'IBM Plex Mono', monospace", fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", padding: "3px 9px", borderRadius: 999, fontWeight: 600 }}>
+      {children}
+    </span>
+  );
+}
+
+function CourseCard({ course, onOpen }) {
+  const inProgress = course.progress > 0 && course.progress < 100;
+  return (
+    <button onClick={() => onOpen(course.id)}
+      style={{
+        textAlign: "left", background: "#191D2B",
+        border: inProgress ? `1px solid ${course.color}55` : "1px solid #232840",
+        borderRadius: 16, padding: 20, cursor: "pointer",
+        display: "flex", flexDirection: "column", gap: 14,
+        transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+        boxShadow: inProgress ? `0 0 0 1px ${course.color}22, 0 12px 32px -16px ${course.color}66` : "none",
+        fontFamily: "inherit",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-3px)")}
+      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ fontSize: 26, width: 48, height: 48, borderRadius: 12, background: `${course.color}1c`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {course.cover}
+        </div>
+        {course.progress === 100 ? <Badge tone="teal">Completed</Badge> : inProgress ? <Badge tone="amber">In progress</Badge> : <Badge>Not started</Badge>}
+      </div>
+      <div>
+        <h3 style={{ margin: 0, fontFamily: "'Fraunces', serif", fontSize: 19, color: "#F0EDE4", fontWeight: 600, lineHeight: 1.3 }}>{course.title}</h3>
+        <p style={{ margin: "6px 0 0", fontSize: 13.5, color: "#8890AC", lineHeight: 1.5 }}>{course.description}</p>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 12.5, color: "#8890AC" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}><ClockIcon size={13} /> {course.hours}h</span>
+        <span>{course.mentor}</span>
+      </div>
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", color: course.color }}>
+          <span>{course.progress}%</span>
+        </div>
+        <ProgressBar pct={course.progress} color={course.color} />
+      </div>
+    </button>
+  );
+}
+
+function useIsNarrow() {
+  const [narrow, setNarrow] = useState(window.innerWidth < 900);
+  useEffect(() => {
+    const onResize = () => setNarrow(window.innerWidth < 900);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return narrow;
+}
+
+function Sidebar({ active, setActive, mobileOpen, setMobileOpen, narrow }) {
+  return (
+    <React.Fragment>
+      {mobileOpen && narrow && (
+        <div onClick={() => setMobileOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(10,11,16,0.6)", zIndex: 40 }} />
+      )}
+      <aside style={{
+        position: narrow ? "fixed" : "sticky", top: 0,
+        left: (mobileOpen || !narrow) ? 0 : -260,
+        height: "100vh", width: 232, background: "#12141C",
+        borderRight: "1px solid #1E2230", display: "flex", flexDirection: "column",
+        padding: "26px 16px", zIndex: 50, transition: "left 0.25s ease", flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 8px 28px" }}>
+          <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg, #2D3350, #F5A742)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>☀️</div>
+          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 600, color: "#F0EDE4" }}>Amka Skills</span>
+        </div>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          {NAV.map((item) => {
+            const IconEl = item.icon;
+            const isActive = active === item.key;
+            return (
+              <button key={item.key} onClick={() => { setActive(item.key); setMobileOpen(false); }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", borderRadius: 10,
+                  border: "none", cursor: "pointer", background: isActive ? "#1E2230" : "transparent",
+                  color: isActive ? "#F5A742" : "#8890AC", fontSize: 14, fontWeight: isActive ? 600 : 500,
+                  fontFamily: "inherit", textAlign: "left",
+                }}>
+                <IconEl size={17} />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div style={{ marginTop: "auto", paddingTop: 20 }}>
+          <div style={{ background: "#191D2B", border: "1px solid #232840", borderRadius: 12, padding: 14, display: "flex", alignItems: "center", gap: 10 }}>
+            <Flame size={18} color="#F5A742" />
+            <div>
+              <div style={{ fontSize: 12.5, color: "#F0EDE4", fontWeight: 600 }}>6-day streak</div>
+              <div style={{ fontSize: 11, color: "#8890AC" }}>Keep it going today</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </React.Fragment>
+  );
+}
+
+function TopBar({ onMenu, name, narrow }) {
+  return (
+    <header style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "18px 28px", borderBottom: "1px solid #1E2230", position: "sticky",
+      top: 0, background: "rgba(16,19,28,0.9)", backdropFilter: "blur(8px)", zIndex: 20,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        {narrow && (
+          <button onClick={onMenu} style={{ display: "flex", background: "none", border: "none", color: "#F0EDE4", cursor: "pointer" }}>
+            <Menu size={22} />
+          </button>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#191D2B", border: "1px solid #232840", borderRadius: 10, padding: "8px 14px", width: narrow ? 160 : 280 }}>
+          <Search size={15} color="#8890AC" />
+          <input placeholder="Search courses, mentors..." style={{ background: "none", border: "none", outline: "none", color: "#F0EDE4", fontSize: 13.5, width: "100%" }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+        <Bell size={19} color="#8890AC" style={{ cursor: "pointer" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #F5A742, #E85D75)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 14, color: "#12141C" }}>
+            {name[0]}
+          </div>
+          {!narrow && <span style={{ fontSize: 13.5, color: "#F0EDE4", fontWeight: 500 }}>{name}</span>}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function DashboardView({ courses, onOpen }) {
+  const overall = Math.round(courses.reduce((a, c) => a + c.progress, 0) / courses.length);
+  const continueCourse = courses.find((c) => c.progress > 0 && c.progress < 100) || courses[0];
+  return (
+    <div style={{ padding: "28px 28px 60px" }}>
+      <p style={{ margin: 0, color: "#8890AC", fontSize: 13.5, fontFamily: "'IBM Plex Mono', monospace" }}>
+        {new Date().toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric" })}
+      </p>
+      <h1 style={{ margin: "6px 0 28px", fontFamily: "'Fraunces', serif", fontSize: 32, color: "#F0EDE4", fontWeight: 600 }}>
+        Amka, Brian. Let's pick up where you left off.
+      </h1>
+
+      <div style={{ background: "linear-gradient(135deg, #191D2B 0%, #1D2130 100%)", border: "1px solid #232840", borderRadius: 20, padding: 28, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24, marginBottom: 32 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 22, flex: "1 1 320px" }}>
+          <SunriseArc pct={overall} size={110} color="#F5A742" />
+          <div>
+            <Badge tone="amber">Continue learning</Badge>
+            <h2 style={{ margin: "10px 0 6px", fontFamily: "'Fraunces', serif", fontSize: 22, color: "#F0EDE4" }}>{continueCourse.title}</h2>
+            <p style={{ margin: 0, color: "#8890AC", fontSize: 13.5 }}>
+              {continueCourse.progress}% complete · next up: {continueCourse.modules.find((m) => !m.done)?.title}
+            </p>
+          </div>
+        </div>
+        <button onClick={() => onOpen(continueCourse.id)} style={{ display: "flex", alignItems: "center", gap: 8, background: "#F5A742", color: "#12141C", border: "none", padding: "12px 22px", borderRadius: 10, fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
+          Resume lesson <ArrowRight size={16} />
+        </button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 34 }}>
+        {[
+          { label: "Overall progress", value: `${overall}%`, icon: Star, color: "#F5A742" },
+          { label: "Courses enrolled", value: courses.length, icon: BookOpen, color: "#4FB6A8" },
+          { label: "Hours logged", value: "38h", icon: ClockIcon, color: "#E85D75" },
+          { label: "Day streak", value: "6", icon: Flame, color: "#F5A742" },
+        ].map((s) => {
+          const SIcon = s.icon;
+          return (
+            <div key={s.label} style={{ background: "#191D2B", border: "1px solid #232840", borderRadius: 14, padding: 16 }}>
+              <SIcon size={17} color={s.color} />
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, color: "#F0EDE4", margin: "8px 0 2px", fontWeight: 600 }}>{s.value}</div>
+              <div style={{ fontSize: 12, color: "#8890AC" }}>{s.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 20, color: "#F0EDE4", marginBottom: 16 }}>Your courses</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
+        {courses.map((c) => <CourseCard key={c.id} course={c} onOpen={onOpen} />)}
+      </div>
+    </div>
+  );
+}
+
+function CoursesView({ courses, onOpen }) {
+  const [filter, setFilter] = useState("All");
+  const categories = ["All", ...new Set(courses.map((c) => c.category))];
+  const filtered = filter === "All" ? courses : courses.filter((c) => c.category === filter);
+  return (
+    <div style={{ padding: "28px 28px 60px" }}>
+      <h1 style={{ margin: "0 0 20px", fontFamily: "'Fraunces', serif", fontSize: 28, color: "#F0EDE4" }}>My Courses</h1>
+      <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+        {categories.map((cat) => (
+          <button key={cat} onClick={() => setFilter(cat)} style={{
+            padding: "7px 16px", borderRadius: 999, fontSize: 13, cursor: "pointer",
+            border: filter === cat ? "1px solid #F5A742" : "1px solid #232840",
+            background: filter === cat ? "rgba(245,167,66,0.12)" : "transparent",
+            color: filter === cat ? "#F5A742" : "#8890AC", fontFamily: "inherit", fontWeight: 500,
+          }}>{cat}</button>
+        ))}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
+        {filtered.map((c) => <CourseCard key={c.id} course={c} onOpen={onOpen} />)}
+      </div>
+    </div>
+  );
+}
+
+function ExploreView({ courses, onOpen }) {
+  return (
+    <div style={{ padding: "28px 28px 60px" }}>
+      <h1 style={{ margin: "0 0 6px", fontFamily: "'Fraunces', serif", fontSize: 28, color: "#F0EDE4" }}>Explore</h1>
+      <p style={{ margin: "0 0 24px", color: "#8890AC", fontSize: 14 }}>New skills to wake up to. Handpicked for where you're headed.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 18 }}>
+        {courses.map((c) => <CourseCard key={c.id} course={c} onOpen={onOpen} />)}
+      </div>
+    </div>
+  );
+}
+
+function AchievementsView() {
+  const badges = [
+    { title: "First Sunrise", desc: "Completed your first lesson", earned: true, icon: "🌅" },
+    { title: "Consultative Closer", desc: "Finished Sales fundamentals", earned: true, icon: "🤝" },
+    { title: "6-Day Streak", desc: "Studied 6 days in a row", earned: true, icon: "🔥" },
+    { title: "Full Stack Starter", desc: "Complete Web Development", earned: false, icon: "💻" },
+    { title: "Growth Marketer", desc: "Complete Digital Marketing", earned: false, icon: "📈" },
+    { title: "Store Owner", desc: "Complete E-commerce Fundamentals", earned: false, icon: "🛒" },
+  ];
+  return (
+    <div style={{ padding: "28px 28px 60px" }}>
+      <h1 style={{ margin: "0 0 24px", fontFamily: "'Fraunces', serif", fontSize: 28, color: "#F0EDE4" }}>Achievements</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+        {badges.map((b) => (
+          <div key={b.title} style={{ background: "#191D2B", border: `1px solid ${b.earned ? "#F5A74255" : "#232840"}`, borderRadius: 14, padding: 18, opacity: b.earned ? 1 : 0.5 }}>
+            <div style={{ fontSize: 28, marginBottom: 10 }}>{b.icon}</div>
+            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, color: "#F0EDE4", marginBottom: 4 }}>{b.title}</div>
+            <div style={{ fontSize: 12.5, color: "#8890AC" }}>{b.desc}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CourseDetailView({ course, onBack }) {
+  const [activeIdx, setActiveIdx] = useState(() => {
+    const idx = course.modules.findIndex((m) => m.active);
+    return idx >= 0 ? idx : 0;
+  });
+  const activeModule = course.modules[activeIdx];
+  return (
+    <div style={{ padding: "24px 28px 60px" }}>
+      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: "#8890AC", cursor: "pointer", fontSize: 13.5, marginBottom: 18, fontFamily: "inherit", padding: 0 }}>
+        <ChevronLeft size={16} /> Back to courses
+      </button>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 8 }}>
+        <div style={{ flex: "2 1 480px" }}>
+          <div style={{ background: `linear-gradient(135deg, #191D2B, ${course.color}15)`, border: "1px solid #232840", borderRadius: 18, aspectRatio: "16/9", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18, position: "relative", overflow: "hidden" }}>
+            <PlayCircle size={64} color={course.color} style={{ cursor: "pointer" }} />
+            <div style={{ position: "absolute", bottom: 14, left: 18, right: 18 }}>
+              <div style={{ fontSize: 12, color: "#8890AC", marginBottom: 6, fontFamily: "'IBM Plex Mono', monospace" }}>{activeModule.minutes} min</div>
+              <ProgressBar pct={38} color={course.color} />
+            </div>
+          </div>
+          <Badge tone="amber">{course.category}</Badge>
+          <h1 style={{ margin: "12px 0 6px", fontFamily: "'Fraunces', serif", fontSize: 26, color: "#F0EDE4" }}>{activeModule.title}</h1>
+          <p style={{ margin: 0, color: "#8890AC", fontSize: 14.5, lineHeight: 1.6 }}>
+            Part of <strong style={{ color: "#F0EDE4" }}>{course.title}</strong> with {course.mentor}. Watch the lesson, then mark it complete to keep your sunrise arc climbing.
+          </p>
+          <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
+            <button style={{ background: course.color, color: "#12141C", border: "none", padding: "11px 20px", borderRadius: 10, fontWeight: 600, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 7 }}>
+              <CheckCircle2 size={16} /> Mark lesson complete
+            </button>
+            <button style={{ background: "transparent", color: "#8890AC", border: "1px solid #232840", padding: "11px 20px", borderRadius: 10, fontWeight: 500, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit" }}>
+              Download notes
+            </button>
+          </div>
+        </div>
+        <div style={{ flex: "1 1 280px", background: "#191D2B", border: "1px solid #232840", borderRadius: 16, padding: 18, height: "fit-content" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <span style={{ fontFamily: "'Fraunces', serif", fontSize: 16, color: "#F0EDE4" }}>Course content</span>
+            <SunriseArc pct={course.progress} size={56} color={course.color} strokeWidth={5} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            {course.modules.map((m, i) => (
+              <button key={m.title} onClick={() => setActiveIdx(i)} style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left", padding: "10px 8px", borderRadius: 10, border: "none", cursor: "pointer", background: i === activeIdx ? "#1E2230" : "transparent", fontFamily: "inherit" }}>
+                {m.done ? <CheckCircle2 size={17} color="#4FB6A8" style={{ flexShrink: 0 }} /> : <CircleIcon size={17} color="#8890AC" style={{ flexShrink: 0 }} />}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13, color: i === activeIdx ? "#F0EDE4" : "#C7C9D9", fontWeight: i === activeIdx ? 600 : 400 }}>{m.title}</div>
+                  <div style={{ fontSize: 11, color: "#8890AC", fontFamily: "'IBM Plex Mono', monospace" }}>{m.minutes} min</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AmkaSkillsLMS() {
+  const [view, setView] = useState("dashboard");
+  const [openCourseId, setOpenCourseId] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const narrow = useIsNarrow();
+
+  const openCourse = (id) => setOpenCourseId(id);
+  const closeCourse = () => setOpenCourseId(null);
+  const openedCourse = useMemo(() => COURSES.find((c) => c.id === openCourseId), [openCourseId]);
+
+  let content;
+  if (openedCourse) content = <CourseDetailView course={openedCourse} onBack={closeCourse} />;
+  else if (view === "dashboard") content = <DashboardView courses={COURSES} onOpen={openCourse} />;
+  else if (view === "courses") content = <CoursesView courses={COURSES} onOpen={openCourse} />;
+  else if (view === "explore") content = <ExploreView courses={COURSES} onOpen={openCourse} />;
+  else if (view === "achievements") content = <AchievementsView />;
+
+  return (
+    <div style={{ display: "flex", minHeight: "100vh", background: "#10131C", fontFamily: "'Inter', sans-serif" }}>
+      <Sidebar active={view} setActive={(v) => { setView(v); setOpenCourseId(null); }} mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} narrow={narrow} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <TopBar onMenu={() => setMobileOpen(true)} name="Brian" narrow={narrow} />
+        {content}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<AmkaSkillsLMS />);
+</script>
+</body>
+</html>
