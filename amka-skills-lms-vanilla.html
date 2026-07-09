@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Amka Skills — Learning Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10131C;
+    --surface:#191D2B;
+    --surface-raised:#232840;
+    --line:#232840;
+    --line-soft:#1E2230;
+    --amber:#F5A742;
+    --teal:#4FB6A8;
+    --rose:#E85D75;
+    --text:#F0EDE4;
+    --muted:#8890AC;
+    --sky:#2D3350;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--ink); }
+  body { font-family: 'Inter', sans-serif; color: var(--text); }
+  button, input { font-family: inherit; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  ::placeholder { color: #6B7089; }
+  @media (prefers-reduced-motion: reduce) { *{ animation: none !important; transition: none !important; } }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ---------- sidebar ---------- */
+  .sidebar {
+    position: sticky; top: 0; height: 100vh; width: 232px;
+    background: var(--ink); border-right: 1px solid var(--line-soft);
+    display: flex; flex-direction: column; padding: 26px 16px;
+    z-index: 50; flex-shrink: 0;
+  }
+  .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 28px; }
+  .sidebar-brand .mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--sky), var(--amber));
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .sidebar-brand .name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; }
+  .nav { display: flex; flex-direction: column; gap: 3px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 10px;
+    border: none; cursor: pointer; background: transparent; color: var(--muted);
+    font-size: 14px; font-weight: 500; text-align: left; width: 100%;
+  }
+  .nav-item.active { background: var(--line-soft); color: var(--amber); font-weight: 600; }
+  .streak-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; display: flex; align-items: center; gap: 10px; margin-top: auto;
+  }
+  .streak-card .title { font-size: 12.5px; color: var(--text); font-weight: 600; }
+  .streak-card .sub { font-size: 11px; color: var(--muted); }
+  .sidebar-footer { margin-top: auto; padding-top: 20px; }
+
+  .sidebar-overlay {
+    position: fixed; inset: 0; background: rgba(10,11,16,0.6); z-index: 40; display: none;
+  }
+
+  /* ---------- topbar ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 28px; border-bottom: 1px solid var(--line-soft);
+    position: sticky; top: 0; background: rgba(16,19,28,0.9); backdrop-filter: blur(8px); z-index: 20;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+  .menu-btn { display: none; background: none; border: none; color: var(--text); cursor: pointer; }
+  .search-box {
+    display: flex; align-items: center; gap: 8px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; width: 280px;
+  }
+  .search-box input { background: none; border: none; outline: none; color: var(--text); font-size: 13.5px; width: 100%; }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber), var(--rose));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 14px; color: var(--ink);
+  }
+  .user-name { font-size: 13.5px; font-weight: 500; }
+
+  /* ---------- content ---------- */
+  .content { padding: 28px 28px 60px; }
+  .eyebrow-date { margin: 0; color: var(--muted); font-size: 13.5px; font-family: 'IBM Plex Mono', monospace; }
+  .page-title { margin: 6px 0 28px; font-family: 'Fraunces', serif; font-size: 32px; font-weight: 600; }
+  h1.section-title, h2.section-title { font-family: 'Fraunces', serif; color: var(--text); }
+
+  /* ---------- badge ---------- */
+  .badge {
+    display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; font-weight: 600;
+  }
+  .badge-default { background: var(--surface-raised); color: var(--muted); }
+  .badge-amber { background: rgba(245,167,66,0.14); color: var(--amber); }
+  .badge-teal { background: rgba(79,182,168,0.14); color: var(--teal); }
+
+  /* ---------- progress bar ---------- */
+  .progress-track { height: 6px; background: var(--surface-raised); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    background: linear-gradient(135deg, #191D2B 0%, #1D2130 100%);
+    border: 1px solid var(--line); border-radius: 20px; padding: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 24px; margin-bottom: 32px;
+  }
+  .hero-left { display: flex; align-items: center; gap: 22px; flex: 1 1 320px; }
+  .hero-title { margin: 10px 0 6px; font-family: 'Fraunces', serif; font-size: 22px; }
+  .hero-sub { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .btn-primary {
+    display: flex; align-items: center; gap: 8px; background: var(--amber); color: var(--ink);
+    border: none; padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--muted); border: 1px solid var(--line);
+    padding: 11px 20px; border-radius: 10px; font-weight: 500; font-size: 13.5px; cursor: pointer;
+  }
+
+  /* ---------- stats ---------- */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 34px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 24px; margin: 8px 0 2px; font-weight: 600; }
+  .stat-label { font-size: 12px; color: var(--muted); }
+
+  /* ---------- course grid / cards ---------- */
+  .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  .course-card {
+    text-align: left; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 16px; padding: 20px; cursor: pointer; display: flex; flex-direction: column;
+    gap: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; width: 100%;
+  }
+  .course-card:hover { transform: translateY(-3px); }
+  .course-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .course-icon { font-size: 26px; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .course-title { margin: 0; font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; line-height: 1.3; }
+  .course-desc { margin: 6px 0 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .course-meta { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--muted); }
+  .course-meta span { display: flex; align-items: center; gap: 5px; }
+  .course-pct-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+
+  /* ---------- filter chips ---------- */
+  .chip-row { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .chip {
+    padding: 7px 16px; border-radius: 999px; font-size: 13px; cursor: pointer;
+    border: 1px solid var(--line); background: transparent; color: var(--muted); font-weight: 500;
+  }
+  .chip.active { border-color: var(--amber); background: rgba(245,167,66,0.12); color: var(--amber); }
+
+  /* ---------- achievements ---------- */
+  .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .badge-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .badge-tile.locked { opacity: 0.5; }
+  .badge-tile .emoji { font-size: 28px; margin-bottom: 10px; }
+  .badge-tile .title { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 4px; }
+  .badge-tile .desc { font-size: 12.5px; color: var(--muted); }
+
+  /* ---------- course detail ---------- */
+  .back-btn {
+    display: flex; align-items: center; gap: 6px; background: none; border: none;
+    color: var(--muted); cursor: pointer; font-size: 13.5px; margin-bottom: 18px; padding: 0;
+  }
+  .detail-layout { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+  .detail-main { flex: 2 1 480px; }
+  .player-mock {
+    border: 1px solid var(--line); border-radius: 18px; aspect-ratio: 16/9;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+    position: relative; overflow: hidden; cursor: pointer;
+  }
+  .player-overlay { position: absolute; bottom: 14px; left: 18px; right: 18px; }
+  .player-time { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-family: 'IBM Plex Mono', monospace; }
+  .lesson-title { margin: 12px 0 6px; font-family: 'Fraunces', serif; font-size: 26px; }
+  .lesson-desc { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+  .lesson-desc strong { color: var(--text); }
+  .detail-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+  .detail-side { flex: 1 1 280px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; height: fit-content; }
+  .detail-side-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .detail-side-head span { font-family: 'Fraunces', serif; font-size: 16px; }
+  .module-list { display: flex; flex-direction: column; gap: 3px; }
+  .module-item {
+    display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 8px;
+    border-radius: 10px; border: none; cursor: pointer; background: transparent; width: 100%;
+  }
+  .module-item.active { background: var(--line-soft); }
+  .module-item .m-title { font-size: 13px; color: #C7C9D9; }
+  .module-item.active .m-title { color: var(--text); font-weight: 600; }
+  .module-item .m-time { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .module-icon { flex-shrink: 0; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 899px) {
+    .sidebar { position: fixed; left: -260px; transition: left 0.25s ease; }
+    .sidebar.open { left: 0; }
+    .sidebar-overlay.open { display: block; }
+    .menu-btn { display: flex; }
+    .search-box { width: 160px; }
+    .user-name { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+/* ---------------------------------------------------------------------
+   AMKA SKILLS — student LMS (pure HTML / CSS / vanilla JS, no framework)
+   Design: pre-dawn ink background warming toward amber as progress rises.
+   Signature: the "sunrise arc" — a rising-sun progress indicator used on
+   the hero, course cards, and lesson list.
+--------------------------------------------------------------------- */
+
+/* ---------- data ---------- */
+const COURSES = [
+  {
+    id: "digital-marketing",
+    title: "Digital Marketing for Kenyan SMEs",
+    mentor: "Brian Otieno",
+    category: "Marketing",
+    hours: 14,
+    progress: 62,
+    color: "#F5A742",
+    cover: "📈",
+    description: "Run acquisition funnels, budget a WhatsApp + Instagram campaign, and read the numbers that actually move sales.",
+    modules: [
+      { title: "Mapping the Kenyan customer journey", done: true, minutes: 22 },
+      { title: "Paid social on a shoestring budget", done: true, minutes: 35 },
+      { title: "Building a WhatsApp sales funnel", done: true, minutes: 28 },
+      { title: "Reading CAC, LTV and ROAS", done: false, minutes: 31, active: true },
+      { title: "M-Pesa checkout conversion tactics", done: false, minutes: 26 },
+      { title: "Retargeting without a big budget", done: false, minutes: 19 },
+    ],
+  },
+  {
+    id: "web-dev",
+    title: "Practical Web Development",
+    mentor: "Achieng Wanjiru",
+    category: "Tech",
+    hours: 22,
+    progress: 28,
+    color: "#4FB6A8",
+    cover: "💻",
+    description: "Ship real client sites: layout systems, responsive design, and deploying a storefront that survives Nairobi's networks.",
+    modules: [
+      { title: "Semantic HTML that clients can edit", done: true, minutes: 18 },
+      { title: "CSS layout: flexbox and grid", done: true, minutes: 33 },
+      { title: "Designing for slow connections", done: false, minutes: 24, active: true },
+      { title: "Forms, validation and feedback states", done: false, minutes: 27 },
+      { title: "Deploying your first storefront", done: false, minutes: 20 },
+    ],
+  },
+  {
+    id: "sales",
+    title: "Consultative Selling for Freelancers",
+    mentor: "Brian Otieno",
+    category: "Sales",
+    hours: 9,
+    progress: 100,
+    color: "#E85D75",
+    cover: "🤝",
+    description: "Price your work with confidence, run discovery calls, and turn a proposal into a signed retainer.",
+    modules: [
+      { title: "Discovery calls that qualify fast", done: true, minutes: 21 },
+      { title: "Pricing without underselling yourself", done: true, minutes: 25 },
+      { title: "Writing proposals clients actually read", done: true, minutes: 19 },
+      { title: "Handling objections calmly", done: true, minutes: 17 },
+    ],
+  },
+  {
+    id: "ecommerce",
+    title: "E-commerce Storefront Fundamentals",
+    mentor: "Naomi Kariuki",
+    category: "Tech",
+    hours: 16,
+    progress: 0,
+    color: "#8890AC",
+    cover: "🛒",
+    description: "Structure a product catalog, set up delivery logic for Kenyan counties, and launch a checkout that converts.",
+    modules: [
+      { title: "Product catalog structure", done: false, minutes: 20 },
+      { title: "Delivery zones and pricing logic", done: false, minutes: 24 },
+      { title: "Trust signals for first-time buyers", done: false, minutes: 18 },
+      { title: "Launch week checklist", done: false, minutes: 15 },
+    ],
+  },
+];
+
+const NAV = [
+  { key: "dashboard", label: "Dashboard", icon: "home" },
+  { key: "courses", label: "My Courses", icon: "book" },
+  { key: "explore", label: "Explore", icon: "compass" },
+  { key: "achievements", label: "Achievements", icon: "award" },
+];
+
+const BADGES = [
+  { title: "First Sunrise", desc: "Completed your first lesson", earned: true, icon: "🌅" },
+  { title: "Consultative Closer", desc: "Finished Sales fundamentals", earned: true, icon: "🤝" },
+  { title: "6-Day Streak", desc: "Studied 6 days in a row", earned: true, icon: "🔥" },
+  { title: "Full Stack Starter", desc: "Complete Web Development", earned: false, icon: "💻" },
+  { title: "Growth Marketer", desc: "Complete Digital Marketing", earned: false, icon: "📈" },
+  { title: "Store Owner", desc: "Complete E-commerce Fundamentals", earned: false, icon: "🛒" },
+];
+
+/* ---------- state ---------- */
+const state = {
+  view: "dashboard",
+  openCourseId: null,
+  filter: "All",
+  activeModuleIdx: 0,
+  mobileOpen: false,
+};
+
+/* ---------- icon library (inline SVG strings) ---------- */
+function icon(name, size, color) {
+  size = size || 18;
+  color = color || "currentColor";
+  const paths = {
+    home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
+    book: '<path d="M2 5c3-1.5 6-1.5 9 0v14c-3-1.5-6-1.5-9 0z"/><path d="M22 5c-3-1.5-6-1.5-9 0v14c3-1.5 6-1.5 9 0z"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><path d="M16 8l-4 8-4-2 4-8z"/>',
+    award: '<circle cx="12" cy="8" r="6"/><path d="M9 14l-2 7 5-3 5 3-2-7"/>',
+    bell: '<path d="M6 8a6 6 0 0112 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 21a2 2 0 004 0"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+    chevronLeft: '<path d="M15 18l-6-6 6-6"/>',
+    play: `<circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="${color}"/>`,
+    check: '<circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/>',
+    circle: '<circle cx="12" cy="12" r="9"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+    star: '<path d="M12 2l3 7h7l-5.5 4.2L18.5 21 12 16.8 5.5 21l2-7.8L2 9h7z"/>',
+    flame: '<path d="M12 2c1 4-4 5-4 9a4 4 0 008 0c0-1-1-2-1-2 2 1 3 3 3 5a6 6 0 01-12 0c0-5 3-6 6-12z"/>',
+    arrowRight: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+    menu: '<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/>',
+  };
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths[name] || ""}</svg>`;
+}
+
+/* ---------- sunrise arc (signature element) ---------- */
+function sunriseArc(pct, size, color, strokeWidth) {
+  size = size || 96;
+  color = color || "#F5A742";
+  strokeWidth = strokeWidth || 8;
+  const r = (size - strokeWidth) / 2;
+  const cy = size / 2;
+  const circumference = Math.PI * r;
+  const dash = (pct / 100) * circumference;
+  const sunY = Math.max(cy - (pct / 100) * (r * 0.72), strokeWidth);
+  const sunX = cy - r * 0.9 + (pct / 100) * (r * 1.8);
+  const gradId = "sky-" + color.replace("#", "") + "-" + Math.round(Math.random() * 100000);
+
+  return `
+  <svg width="${size}" height="${size / 2 + strokeWidth}" viewBox="0 0 ${size} ${size / 2 + strokeWidth}">
+    <defs>
+      <linearGradient id="${gradId}" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0%" stop-color="#2D3350" />
+        <stop offset="100%" stop-color="${color}" />
+      </linearGradient>
+    </defs>
+    <path d="M ${strokeWidth / 2} ${cy} A ${r} ${r} 0 0 1 ${size - strokeWidth / 2} ${cy}"
+          fill="none" stroke="#232840" stroke-width="${strokeWidth}" stroke-linecap="round" />
+    <path d="M ${strokeWidth / 2} ${cy} A ${r} ${r} 0 0 1 ${size - strokeWidth / 2} ${cy}"
+          fill="none" stroke="url(#${gradId})" stroke-width="${strokeWidth}" stroke-linecap="round"
+          stroke-dasharray="${dash} ${circumference}" style="transition: stroke-dasharray 0.6s ease" />
+    <circle cx="${sunX}" cy="${sunY}" r="${size * 0.075}" fill="${color}">
+      <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" repeatCount="indefinite" />
+    </circle>
+  </svg>`;
+}
+
+function progressBar(pct, color) {
+  return `<div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,#2D3350,${color})"></div></div>`;
+}
+
+function badge(text, tone) {
+  return `<span class="badge badge-${tone || "default"}">${text}</span>`;
+}
+
+/* ---------- course card ---------- */
+function courseCard(course) {
+  const inProgress = course.progress > 0 && course.progress < 100;
+  const tone = course.progress === 100 ? "teal" : inProgress ? "amber" : "default";
+  const label = course.progress === 100 ? "Completed" : inProgress ? "In progress" : "Not started";
+  const borderStyle = inProgress
+    ? `border-color:${course.color}55; box-shadow:0 0 0 1px ${course.color}22, 0 12px 32px -16px ${course.color}66;`
+    : "";
+  return `
+  <button class="course-card" style="${borderStyle}" onclick="App.openCourse('${course.id}')">
+    <div class="course-card-top">
+      <div class="course-icon" style="background:${course.color}1c">${course.cover}</div>
+      ${badge(label, tone)}
+    </div>
+    <div>
+      <h3 class="course-title">${course.title}</h3>
+      <p class="course-desc">${course.description}</p>
+    </div>
+    <div class="course-meta">
+      <span>${icon("clock", 13, "#8890AC")} ${course.hours}h</span>
+      <span>${course.mentor}</span>
+    </div>
+    <div>
+      <div class="course-pct-row" style="color:${course.color}"><span>${course.progress}%</span></div>
+      ${progressBar(course.progress, course.color)}
+    </div>
+  </button>`;
+}
+
+/* ---------- views ---------- */
+function dashboardView() {
+  const overall = Math.round(COURSES.reduce((a, c) => a + c.progress, 0) / COURSES.length);
+  const continueCourse = COURSES.find((c) => c.progress > 0 && c.progress < 100) || COURSES[0];
+  const nextModule = continueCourse.modules.find((m) => !m.done);
+  const dateStr = new Date().toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric" });
+
+  return `
+  <div class="content">
+    <p class="eyebrow-date">${dateStr}</p>
+    <h1 class="page-title">Amka, Brian. Let's pick up where you left off.</h1>
+
+    <div class="hero">
+      <div class="hero-left">
+        ${sunriseArc(overall, 110, "#F5A742")}
+        <div>
+          ${badge("Continue learning", "amber")}
+          <h2 class="hero-title">${continueCourse.title}</h2>
+          <p class="hero-sub">${continueCourse.progress}% complete · next up: ${nextModule ? nextModule.title : "—"}</p>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="App.openCourse('${continueCourse.id}')">
+        Resume lesson ${icon("arrowRight", 16, "#12141C")}
+      </button>
+    </div>
+
+    <div class="stats-grid">
+      ${statCard("star", overall + "%", "Overall progress", "#F5A742")}
+      ${statCard("book", COURSES.length, "Courses enrolled", "#4FB6A8")}
+      ${statCard("clock", "38h", "Hours logged", "#E85D75")}
+      ${statCard("flame", "6", "Day streak", "#F5A742")}
+    </div>
+
+    <h2 class="section-title" style="font-size:20px;margin-bottom:16px;">Your courses</h2>
+    <div class="course-grid">${COURSES.map(courseCard).join("")}</div>
+  </div>`;
+}
+
+function statCard(iconName, value, label, color) {
+  return `
+  <div class="stat-card">
+    ${icon(iconName, 17, color)}
+    <div class="stat-value">${value}</div>
+    <div class="stat-label">${label}</div>
+  </div>`;
+}
+
+function coursesView() {
+  const categories = ["All", ...new Set(COURSES.map((c) => c.category))];
+  const filtered = state.filter === "All" ? COURSES : COURSES.filter((c) => c.category === state.filter);
+  return `
+  <div class="content">
+    <h1 class="section-title" style="font-size:28px;margin-bottom:20px;">My Courses</h1>
+    <div class="chip-row">
+      ${categories.map((cat) => `<button class="chip ${cat === state.filter ? "active" : ""}" onclick="App.setFilter('${cat}')">${cat}</button>`).join("")}
+    </div>
+    <div class="course-grid">${filtered.map(courseCard).join("")}</div>
+  </div>`;
+}
+
+function exploreView() {
+  return `
+  <div class="content">
+    <h1 class="section-title" style="font-size:28px;margin-bottom:6px;">Explore</h1>
+    <p style="margin:0 0 24px;color:var(--muted);font-size:14px;">New skills to wake up to. Handpicked for where you're headed.</p>
+    <div class="course-grid">${COURSES.map(courseCard).join("")}</div>
+  </div>`;
+}
+
+function achievementsView() {
+  return `
+  <div class="content">
+    <h1 class="section-title" style="font-size:28px;margin-bottom:24px;">Achievements</h1>
+    <div class="badge-grid">
+      ${BADGES.map((b) => `
+        <div class="badge-tile ${b.earned ? "" : "locked"}" style="border-color:${b.earned ? "#F5A74255" : "#232840"}">
+          <div class="emoji">${b.icon}</div>
+          <div class="title">${b.title}</div>
+          <div class="desc">${b.desc}</div>
+        </div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function courseDetailView(course) {
+  const idx = state.activeModuleIdx;
+  const activeModule = course.modules[idx];
+  return `
+  <div class="content">
+    <button class="back-btn" onclick="App.closeCourse()">${icon("chevronLeft", 16, "#8890AC")} Back to courses</button>
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="player-mock" style="background:linear-gradient(135deg, #191D2B, ${course.color}15); border-color:var(--line)">
+          ${icon("play", 64, course.color)}
+          <div class="player-overlay">
+            <div class="player-time">${activeModule.minutes} min</div>
+            ${progressBar(38, course.color)}
+          </div>
+        </div>
+        ${badge(course.category, "amber")}
+        <h1 class="lesson-title">${activeModule.title}</h1>
+        <p class="lesson-desc">Part of <strong>${course.title}</strong> with ${course.mentor}. Watch the lesson, then mark it complete to keep your sunrise arc climbing.</p>
+        <div class="detail-actions">
+          <button class="btn-primary" style="background:${course.color}" onclick="App.markComplete('${course.id}', ${idx})">
+            ${icon("check", 16, "#12141C")} Mark lesson complete
+          </button>
+          <button class="btn-ghost">Download notes</button>
+        </div>
+      </div>
+      <div class="detail-side">
+        <div class="detail-side-head">
+          <span>Course content</span>
+          ${sunriseArc(course.progress, 56, course.color, 5)}
+        </div>
+        <div class="module-list">
+          ${course.modules.map((m, i) => `
+            <button class="module-item ${i === idx ? "active" : ""}" onclick="App.setActiveModule(${i})">
+              <span class="module-icon">${m.done ? icon("check", 17, "#4FB6A8") : icon("circle", 17, "#8890AC")}</span>
+              <div style="flex:1">
+                <div class="m-title">${m.title}</div>
+                <div class="m-time">${m.minutes} min</div>
+              </div>
+            </button>`).join("")}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- shell: sidebar + topbar ---------- */
+function sidebarHTML() {
+  return `
+  <aside class="sidebar ${state.mobileOpen ? "open" : ""}" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="mark">☀️</div>
+      <span class="name">Amka Skills</span>
+    </div>
+    <nav class="nav">
+      ${NAV.map((item) => `
+        <button class="nav-item ${state.view === item.key && !state.openCourseId ? "active" : ""}" onclick="App.setView('${item.key}')">
+          ${icon(item.icon, 17)} ${item.label}
+        </button>`).join("")}
+    </nav>
+    <div class="sidebar-footer">
+      <div class="streak-card">
+        ${icon("flame", 18, "#F5A742")}
+        <div>
+          <div class="title">6-day streak</div>
+          <div class="sub">Keep it going today</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay ${state.mobileOpen ? "open" : ""}" onclick="App.closeMobileMenu()"></div>`;
+}
+
+function topbarHTML() {
+  return `
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-btn" onclick="App.openMobileMenu()">${icon("menu", 22, "#F0EDE4")}</button>
+      <div class="search-box">
+        ${icon("search", 15, "#8890AC")}
+        <input placeholder="Search courses, mentors..." />
+      </div>
+    </div>
+    <div class="topbar-right">
+      ${icon("bell", 19, "#8890AC")}
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="avatar">B</div>
+        <span class="user-name">Brian</span>
+      </div>
+    </div>
+  </header>`;
+}
+
+/* ---------- render ---------- */
+function render() {
+  const openedCourse = COURSES.find((c) => c.id === state.openCourseId);
+  let contentHTML;
+  if (openedCourse) contentHTML = courseDetailView(openedCourse);
+  else if (state.view === "dashboard") contentHTML = dashboardView();
+  else if (state.view === "courses") contentHTML = coursesView();
+  else if (state.view === "explore") contentHTML = exploreView();
+  else if (state.view === "achievements") contentHTML = achievementsView();
+
+  document.getElementById("app").innerHTML = `
+    ${sidebarHTML()}
+    <div style="flex:1;min-width:0;">
+      ${topbarHTML()}
+      ${contentHTML}
+    </div>`;
+}
+
+/* ---------- app controller (exposed globally for inline handlers) ---------- */
+const App = {
+  setView(key) {
+    state.view = key;
+    state.openCourseId = null;
+    state.mobileOpen = false;
+    render();
+  },
+  openCourse(id) {
+    state.openCourseId = id;
+    const course = COURSES.find((c) => c.id === id);
+    const idx = course.modules.findIndex((m) => m.active);
+    state.activeModuleIdx = idx >= 0 ? idx : 0;
+    render();
+  },
+  closeCourse() {
+    state.openCourseId = null;
+    render();
+  },
+  setActiveModule(idx) {
+    state.activeModuleIdx = idx;
+    render();
+  },
+  markComplete(courseId, idx) {
+    const course = COURSES.find((c) => c.id === courseId);
+    course.modules[idx].done = true;
+    const doneCount = course.modules.filter((m) => m.done).length;
+    course.progress = Math.round((doneCount / course.modules.length) * 100);
+    render();
+  },
+  setFilter(cat) {
+    state.filter = cat;
+    render();
+  },
+  openMobileMenu() {
+    state.mobileOpen = true;
+    render();
+  },
+  closeMobileMenu() {
+    state.mobileOpen = false;
+    render();
+  },
+};
+
+render();
+</script>
+</body>
+</html>
