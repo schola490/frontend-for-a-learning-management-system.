@@ -8,24 +8,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#10131C;
-    --surface:#191D2B;
-    --surface-raised:#232840;
-    --line:#232840;
-    --line-soft:#1E2230;
-    --amber:#F5A742;
-    --teal:#4FB6A8;
-    --rose:#E85D75;
-    --text:#F0EDE4;
-    --muted:#8890AC;
-    --sky:#2D3350;
+    /* daylight palette — a clear morning sky base, warming toward gold as progress rises */
+    --bg:#F4F6FB;
+    --surface:#FFFFFF;
+    --surface-raised:#EEF1F8;
+    --line:#E1E5F0;
+    --line-soft:#EAEDF6;
+    --ink:#14161F;          /* darkest tone: primary text, and text sitting on top of vivid fills */
+    --text:#14161F;
+    --muted:#5B6178;
+    --sky:#C9D3E8;           /* pale sky blue — arc + progress track gradient start */
+
+    --amber:#B45309;         /* deep gold — used as TEXT/icon/border (contrast-safe on white) */
+    --amber-fill:#F2A93C;    /* vivid gold — used as FILL behind dark ink text (buttons, avatar) */
+    --amber-tint:rgba(180,83,9,0.10);
+
+    --teal:#0F766E;
+    --teal-fill:#4FB6A8;
+    --teal-tint:rgba(15,118,110,0.10);
+
+    --rose:#BE3455;
+    --rose-fill:#E85D75;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: var(--ink); }
+  html, body { margin: 0; padding: 0; background: var(--bg); }
   body { font-family: 'Inter', sans-serif; color: var(--text); }
   button, input { font-family: inherit; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-  ::placeholder { color: #6B7089; }
+  ::placeholder { color: #9AA0B4; }
   @media (prefers-reduced-motion: reduce) { *{ animation: none !important; transition: none !important; } }
 
   .app { display: flex; min-height: 100vh; }
@@ -33,44 +43,47 @@
   /* ---------- sidebar ---------- */
   .sidebar {
     position: sticky; top: 0; height: 100vh; width: 232px;
-    background: var(--ink); border-right: 1px solid var(--line-soft);
+    background: var(--surface); border-right: 1px solid var(--line);
     display: flex; flex-direction: column; padding: 26px 16px;
     z-index: 50; flex-shrink: 0;
   }
   .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 28px; }
   .sidebar-brand .mark {
     width: 34px; height: 34px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--sky), var(--amber));
+    background: linear-gradient(135deg, var(--sky), var(--amber-fill));
     display: flex; align-items: center; justify-content: center; font-size: 16px;
+    box-shadow: 0 4px 10px -4px rgba(180,83,9,0.35);
   }
-  .sidebar-brand .name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; }
+  .sidebar-brand .name { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--ink); }
   .nav { display: flex; flex-direction: column; gap: 3px; }
   .nav-item {
     display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 10px;
     border: none; cursor: pointer; background: transparent; color: var(--muted);
     font-size: 14px; font-weight: 500; text-align: left; width: 100%;
+    transition: background 0.15s ease, color 0.15s ease;
   }
-  .nav-item.active { background: var(--line-soft); color: var(--amber); font-weight: 600; }
+  .nav-item:hover { background: var(--surface-raised); color: var(--ink); }
+  .nav-item.active { background: var(--amber-tint); color: var(--amber); font-weight: 600; }
   .streak-card {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    background: var(--amber-tint); border: 1px solid rgba(180,83,9,0.16); border-radius: 12px;
     padding: 14px; display: flex; align-items: center; gap: 10px; margin-top: auto;
   }
-  .streak-card .title { font-size: 12.5px; color: var(--text); font-weight: 600; }
+  .streak-card .title { font-size: 12.5px; color: var(--ink); font-weight: 600; }
   .streak-card .sub { font-size: 11px; color: var(--muted); }
   .sidebar-footer { margin-top: auto; padding-top: 20px; }
 
   .sidebar-overlay {
-    position: fixed; inset: 0; background: rgba(10,11,16,0.6); z-index: 40; display: none;
+    position: fixed; inset: 0; background: rgba(20,22,31,0.35); z-index: 40; display: none;
   }
 
   /* ---------- topbar ---------- */
   .topbar {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 28px; border-bottom: 1px solid var(--line-soft);
-    position: sticky; top: 0; background: rgba(16,19,28,0.9); backdrop-filter: blur(8px); z-index: 20;
+    padding: 18px 28px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: rgba(244,246,251,0.88); backdrop-filter: blur(8px); z-index: 20;
   }
   .topbar-left { display: flex; align-items: center; gap: 14px; }
-  .menu-btn { display: none; background: none; border: none; color: var(--text); cursor: pointer; }
+  .menu-btn { display: none; background: none; border: none; color: var(--ink); cursor: pointer; }
   .search-box {
     display: flex; align-items: center; gap: 8px; background: var(--surface);
     border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; width: 280px;
@@ -79,17 +92,17 @@
   .topbar-right { display: flex; align-items: center; gap: 18px; }
   .avatar {
     width: 34px; height: 34px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--amber), var(--rose));
+    background: linear-gradient(135deg, var(--amber-fill), var(--rose-fill));
     display: flex; align-items: center; justify-content: center;
     font-family: 'Fraunces', serif; font-weight: 700; font-size: 14px; color: var(--ink);
   }
-  .user-name { font-size: 13.5px; font-weight: 500; }
+  .user-name { font-size: 13.5px; font-weight: 500; color: var(--ink); }
 
   /* ---------- content ---------- */
   .content { padding: 28px 28px 60px; }
   .eyebrow-date { margin: 0; color: var(--muted); font-size: 13.5px; font-family: 'IBM Plex Mono', monospace; }
-  .page-title { margin: 6px 0 28px; font-family: 'Fraunces', serif; font-size: 32px; font-weight: 600; }
-  h1.section-title, h2.section-title { font-family: 'Fraunces', serif; color: var(--text); }
+  .page-title { margin: 6px 0 28px; font-family: 'Fraunces', serif; font-size: 32px; font-weight: 600; color: var(--ink); }
+  .section-title { font-family: 'Fraunces', serif; color: var(--ink); }
 
   /* ---------- badge ---------- */
   .badge {
@@ -97,8 +110,8 @@
     letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px; font-weight: 600;
   }
   .badge-default { background: var(--surface-raised); color: var(--muted); }
-  .badge-amber { background: rgba(245,167,66,0.14); color: var(--amber); }
-  .badge-teal { background: rgba(79,182,168,0.14); color: var(--teal); }
+  .badge-amber { background: var(--amber-tint); color: var(--amber); }
+  .badge-teal { background: var(--teal-tint); color: var(--teal); }
 
   /* ---------- progress bar ---------- */
   .progress-track { height: 6px; background: var(--surface-raised); border-radius: 999px; overflow: hidden; }
@@ -106,27 +119,31 @@
 
   /* ---------- hero ---------- */
   .hero {
-    background: linear-gradient(135deg, #191D2B 0%, #1D2130 100%);
+    background: linear-gradient(135deg, #FFFFFF 0%, #FDF1DC 100%);
     border: 1px solid var(--line); border-radius: 20px; padding: 28px;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 24px; margin-bottom: 32px;
+    box-shadow: 0 18px 40px -28px rgba(180,83,9,0.45);
   }
   .hero-left { display: flex; align-items: center; gap: 22px; flex: 1 1 320px; }
-  .hero-title { margin: 10px 0 6px; font-family: 'Fraunces', serif; font-size: 22px; }
+  .hero-title { margin: 10px 0 6px; font-family: 'Fraunces', serif; font-size: 22px; color: var(--ink); }
   .hero-sub { margin: 0; color: var(--muted); font-size: 13.5px; }
   .btn-primary {
-    display: flex; align-items: center; gap: 8px; background: var(--amber); color: var(--ink);
+    display: flex; align-items: center; gap: 8px; background: var(--amber-fill); color: var(--ink);
     border: none; padding: 12px 22px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer;
+    box-shadow: 0 10px 22px -12px rgba(180,83,9,0.55);
   }
+  .btn-primary:hover { filter: brightness(0.96); }
   .btn-ghost {
-    background: transparent; color: var(--muted); border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted); border: 1px solid var(--line);
     padding: 11px 20px; border-radius: 10px; font-weight: 500; font-size: 13.5px; cursor: pointer;
   }
+  .btn-ghost:hover { color: var(--ink); border-color: #C9CEDD; }
 
   /* ---------- stats ---------- */
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 34px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
-  .stat-value { font-family: 'Fraunces', serif; font-size: 24px; margin: 8px 0 2px; font-weight: 600; }
+  .stat-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 1px 2px rgba(20,22,31,0.03); }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 24px; margin: 8px 0 2px; font-weight: 600; color: var(--ink); }
   .stat-label { font-size: 12px; color: var(--muted); }
 
   /* ---------- course grid / cards ---------- */
@@ -135,30 +152,31 @@
     text-align: left; background: var(--surface); border: 1px solid var(--line);
     border-radius: 16px; padding: 20px; cursor: pointer; display: flex; flex-direction: column;
     gap: 14px; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; width: 100%;
+    box-shadow: 0 1px 3px rgba(20,22,31,0.05);
   }
   .course-card:hover { transform: translateY(-3px); }
   .course-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
   .course-icon { font-size: 26px; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-  .course-title { margin: 0; font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; line-height: 1.3; }
+  .course-title { margin: 0; font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; line-height: 1.3; color: var(--ink); }
   .course-desc { margin: 6px 0 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
   .course-meta { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--muted); }
   .course-meta span { display: flex; align-items: center; gap: 5px; }
-  .course-pct-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+  .course-pct-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; color: var(--muted); font-weight: 600; }
 
   /* ---------- filter chips ---------- */
   .chip-row { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
   .chip {
     padding: 7px 16px; border-radius: 999px; font-size: 13px; cursor: pointer;
-    border: 1px solid var(--line); background: transparent; color: var(--muted); font-weight: 500;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted); font-weight: 500;
   }
-  .chip.active { border-color: var(--amber); background: rgba(245,167,66,0.12); color: var(--amber); }
+  .chip.active { border-color: var(--amber); background: var(--amber-tint); color: var(--amber); }
 
   /* ---------- achievements ---------- */
   .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-  .badge-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
-  .badge-tile.locked { opacity: 0.5; }
+  .badge-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; box-shadow: 0 1px 2px rgba(20,22,31,0.03); }
+  .badge-tile.locked { opacity: 0.55; }
   .badge-tile .emoji { font-size: 28px; margin-bottom: 10px; }
-  .badge-tile .title { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 4px; }
+  .badge-tile .title { font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 4px; color: var(--ink); }
   .badge-tile .desc { font-size: 12.5px; color: var(--muted); }
 
   /* ---------- course detail ---------- */
@@ -166,6 +184,7 @@
     display: flex; align-items: center; gap: 6px; background: none; border: none;
     color: var(--muted); cursor: pointer; font-size: 13.5px; margin-bottom: 18px; padding: 0;
   }
+  .back-btn:hover { color: var(--ink); }
   .detail-layout { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
   .detail-main { flex: 2 1 480px; }
   .player-mock {
@@ -175,28 +194,29 @@
   }
   .player-overlay { position: absolute; bottom: 14px; left: 18px; right: 18px; }
   .player-time { font-size: 12px; color: var(--muted); margin-bottom: 6px; font-family: 'IBM Plex Mono', monospace; }
-  .lesson-title { margin: 12px 0 6px; font-family: 'Fraunces', serif; font-size: 26px; }
+  .lesson-title { margin: 12px 0 6px; font-family: 'Fraunces', serif; font-size: 26px; color: var(--ink); }
   .lesson-desc { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
-  .lesson-desc strong { color: var(--text); }
+  .lesson-desc strong { color: var(--ink); }
   .detail-actions { display: flex; gap: 10px; margin-top: 20px; }
 
-  .detail-side { flex: 1 1 280px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; height: fit-content; }
+  .detail-side { flex: 1 1 280px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; height: fit-content; box-shadow: 0 1px 2px rgba(20,22,31,0.03); }
   .detail-side-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .detail-side-head span { font-family: 'Fraunces', serif; font-size: 16px; }
+  .detail-side-head span { font-family: 'Fraunces', serif; font-size: 16px; color: var(--ink); }
   .module-list { display: flex; flex-direction: column; gap: 3px; }
   .module-item {
     display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 8px;
     border-radius: 10px; border: none; cursor: pointer; background: transparent; width: 100%;
   }
-  .module-item.active { background: var(--line-soft); }
-  .module-item .m-title { font-size: 13px; color: #C7C9D9; }
-  .module-item.active .m-title { color: var(--text); font-weight: 600; }
+  .module-item:hover { background: var(--surface-raised); }
+  .module-item.active { background: var(--amber-tint); }
+  .module-item .m-title { font-size: 13px; color: var(--muted); }
+  .module-item.active .m-title { color: var(--ink); font-weight: 600; }
   .module-item .m-time { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
   .module-icon { flex-shrink: 0; }
 
   /* ---------- responsive ---------- */
   @media (max-width: 899px) {
-    .sidebar { position: fixed; left: -260px; transition: left 0.25s ease; }
+    .sidebar { position: fixed; left: -260px; transition: left 0.25s ease; box-shadow: 0 0 40px rgba(20,22,31,0.15); }
     .sidebar.open { left: 0; }
     .sidebar-overlay.open { display: block; }
     .menu-btn { display: flex; }
@@ -210,10 +230,10 @@
 
 <script>
 /* ---------------------------------------------------------------------
-   AMKA SKILLS — student LMS (pure HTML / CSS / vanilla JS, no framework)
-   Design: pre-dawn ink background warming toward amber as progress rises.
-   Signature: the "sunrise arc" — a rising-sun progress indicator used on
-   the hero, course cards, and lesson list.
+   AMKA SKILLS — student LMS (light theme, pure HTML / CSS / vanilla JS)
+   Design: a clear morning-sky background with dark ink text, warming
+   toward gold as progress rises. Signature: the "sunrise arc" — a rising
+   sun progress indicator on the hero, course cards, and lesson list.
 --------------------------------------------------------------------- */
 
 /* ---------- data ---------- */
@@ -225,7 +245,7 @@ const COURSES = [
     category: "Marketing",
     hours: 14,
     progress: 62,
-    color: "#F5A742",
+    color: "#D08A2E",
     cover: "📈",
     description: "Run acquisition funnels, budget a WhatsApp + Instagram campaign, and read the numbers that actually move sales.",
     modules: [
@@ -244,7 +264,7 @@ const COURSES = [
     category: "Tech",
     hours: 22,
     progress: 28,
-    color: "#4FB6A8",
+    color: "#1E8577",
     cover: "💻",
     description: "Ship real client sites: layout systems, responsive design, and deploying a storefront that survives Nairobi's networks.",
     modules: [
@@ -262,7 +282,7 @@ const COURSES = [
     category: "Sales",
     hours: 9,
     progress: 100,
-    color: "#E85D75",
+    color: "#BE3455",
     cover: "🤝",
     description: "Price your work with confidence, run discovery calls, and turn a proposal into a signed retainer.",
     modules: [
@@ -279,7 +299,7 @@ const COURSES = [
     category: "Tech",
     hours: 16,
     progress: 0,
-    color: "#8890AC",
+    color: "#6B7280",
     cover: "🛒",
     description: "Structure a product catalog, set up delivery logic for Kenyan counties, and launch a checkout that converts.",
     modules: [
@@ -319,7 +339,7 @@ const state = {
 /* ---------- icon library (inline SVG strings) ---------- */
 function icon(name, size, color) {
   size = size || 18;
-  color = color || "currentColor";
+  color = color || "#14161F";
   const paths = {
     home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/>',
     book: '<path d="M2 5c3-1.5 6-1.5 9 0v14c-3-1.5-6-1.5-9 0z"/><path d="M22 5c-3-1.5-6-1.5-9 0v14c3-1.5 6-1.5 9 0z"/>',
@@ -343,7 +363,7 @@ function icon(name, size, color) {
 /* ---------- sunrise arc (signature element) ---------- */
 function sunriseArc(pct, size, color, strokeWidth) {
   size = size || 96;
-  color = color || "#F5A742";
+  color = color || "#B45309";
   strokeWidth = strokeWidth || 8;
   const r = (size - strokeWidth) / 2;
   const cy = size / 2;
@@ -357,23 +377,23 @@ function sunriseArc(pct, size, color, strokeWidth) {
   <svg width="${size}" height="${size / 2 + strokeWidth}" viewBox="0 0 ${size} ${size / 2 + strokeWidth}">
     <defs>
       <linearGradient id="${gradId}" x1="0" x2="1" y1="0" y2="0">
-        <stop offset="0%" stop-color="#2D3350" />
+        <stop offset="0%" stop-color="#C9D3E8" />
         <stop offset="100%" stop-color="${color}" />
       </linearGradient>
     </defs>
     <path d="M ${strokeWidth / 2} ${cy} A ${r} ${r} 0 0 1 ${size - strokeWidth / 2} ${cy}"
-          fill="none" stroke="#232840" stroke-width="${strokeWidth}" stroke-linecap="round" />
+          fill="none" stroke="#E1E5F0" stroke-width="${strokeWidth}" stroke-linecap="round" />
     <path d="M ${strokeWidth / 2} ${cy} A ${r} ${r} 0 0 1 ${size - strokeWidth / 2} ${cy}"
           fill="none" stroke="url(#${gradId})" stroke-width="${strokeWidth}" stroke-linecap="round"
           stroke-dasharray="${dash} ${circumference}" style="transition: stroke-dasharray 0.6s ease" />
-    <circle cx="${sunX}" cy="${sunY}" r="${size * 0.075}" fill="${color}">
+    <circle cx="${sunX}" cy="${sunY}" r="${size * 0.075}" fill="${color}" stroke="#FFFFFF" stroke-width="2">
       <animate attributeName="opacity" values="0.85;1;0.85" dur="3s" repeatCount="indefinite" />
     </circle>
   </svg>`;
 }
 
 function progressBar(pct, color) {
-  return `<div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,#2D3350,${color})"></div></div>`;
+  return `<div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,#C9D3E8,${color})"></div></div>`;
 }
 
 function badge(text, tone) {
@@ -386,7 +406,7 @@ function courseCard(course) {
   const tone = course.progress === 100 ? "teal" : inProgress ? "amber" : "default";
   const label = course.progress === 100 ? "Completed" : inProgress ? "In progress" : "Not started";
   const borderStyle = inProgress
-    ? `border-color:${course.color}55; box-shadow:0 0 0 1px ${course.color}22, 0 12px 32px -16px ${course.color}66;`
+    ? `border-color:${course.color}66; box-shadow:0 1px 3px rgba(20,22,31,0.05), 0 14px 30px -20px ${course.color}88;`
     : "";
   return `
   <button class="course-card" style="${borderStyle}" onclick="App.openCourse('${course.id}')">
@@ -399,11 +419,11 @@ function courseCard(course) {
       <p class="course-desc">${course.description}</p>
     </div>
     <div class="course-meta">
-      <span>${icon("clock", 13, "#8890AC")} ${course.hours}h</span>
+      <span>${icon("clock", 13, "#5B6178")} ${course.hours}h</span>
       <span>${course.mentor}</span>
     </div>
     <div>
-      <div class="course-pct-row" style="color:${course.color}"><span>${course.progress}%</span></div>
+      <div class="course-pct-row"><span>${course.progress}%</span></div>
       ${progressBar(course.progress, course.color)}
     </div>
   </button>`;
@@ -423,7 +443,7 @@ function dashboardView() {
 
     <div class="hero">
       <div class="hero-left">
-        ${sunriseArc(overall, 110, "#F5A742")}
+        ${sunriseArc(overall, 110, "#B45309")}
         <div>
           ${badge("Continue learning", "amber")}
           <h2 class="hero-title">${continueCourse.title}</h2>
@@ -431,15 +451,15 @@ function dashboardView() {
         </div>
       </div>
       <button class="btn-primary" onclick="App.openCourse('${continueCourse.id}')">
-        Resume lesson ${icon("arrowRight", 16, "#12141C")}
+        Resume lesson ${icon("arrowRight", 16, "#14161F")}
       </button>
     </div>
 
     <div class="stats-grid">
-      ${statCard("star", overall + "%", "Overall progress", "#F5A742")}
-      ${statCard("book", COURSES.length, "Courses enrolled", "#4FB6A8")}
-      ${statCard("clock", "38h", "Hours logged", "#E85D75")}
-      ${statCard("flame", "6", "Day streak", "#F5A742")}
+      ${statCard("star", overall + "%", "Overall progress", "#B45309")}
+      ${statCard("book", COURSES.length, "Courses enrolled", "#0F766E")}
+      ${statCard("clock", "38h", "Hours logged", "#BE3455")}
+      ${statCard("flame", "6", "Day streak", "#B45309")}
     </div>
 
     <h2 class="section-title" style="font-size:20px;margin-bottom:16px;">Your courses</h2>
@@ -484,7 +504,7 @@ function achievementsView() {
     <h1 class="section-title" style="font-size:28px;margin-bottom:24px;">Achievements</h1>
     <div class="badge-grid">
       ${BADGES.map((b) => `
-        <div class="badge-tile ${b.earned ? "" : "locked"}" style="border-color:${b.earned ? "#F5A74255" : "#232840"}">
+        <div class="badge-tile ${b.earned ? "" : "locked"}" style="border-color:${b.earned ? "#F2A93C88" : "var(--line)"}">
           <div class="emoji">${b.icon}</div>
           <div class="title">${b.title}</div>
           <div class="desc">${b.desc}</div>
@@ -498,10 +518,10 @@ function courseDetailView(course) {
   const activeModule = course.modules[idx];
   return `
   <div class="content">
-    <button class="back-btn" onclick="App.closeCourse()">${icon("chevronLeft", 16, "#8890AC")} Back to courses</button>
+    <button class="back-btn" onclick="App.closeCourse()">${icon("chevronLeft", 16, "#5B6178")} Back to courses</button>
     <div class="detail-layout">
       <div class="detail-main">
-        <div class="player-mock" style="background:linear-gradient(135deg, #191D2B, ${course.color}15); border-color:var(--line)">
+        <div class="player-mock" style="background:linear-gradient(135deg, #FFFFFF, ${course.color}18); border-color:var(--line)">
           ${icon("play", 64, course.color)}
           <div class="player-overlay">
             <div class="player-time">${activeModule.minutes} min</div>
@@ -513,7 +533,7 @@ function courseDetailView(course) {
         <p class="lesson-desc">Part of <strong>${course.title}</strong> with ${course.mentor}. Watch the lesson, then mark it complete to keep your sunrise arc climbing.</p>
         <div class="detail-actions">
           <button class="btn-primary" style="background:${course.color}" onclick="App.markComplete('${course.id}', ${idx})">
-            ${icon("check", 16, "#12141C")} Mark lesson complete
+            ${icon("check", 16, "#FFFFFF")} Mark lesson complete
           </button>
           <button class="btn-ghost">Download notes</button>
         </div>
@@ -526,7 +546,7 @@ function courseDetailView(course) {
         <div class="module-list">
           ${course.modules.map((m, i) => `
             <button class="module-item ${i === idx ? "active" : ""}" onclick="App.setActiveModule(${i})">
-              <span class="module-icon">${m.done ? icon("check", 17, "#4FB6A8") : icon("circle", 17, "#8890AC")}</span>
+              <span class="module-icon">${m.done ? icon("check", 17, "#0F766E") : icon("circle", 17, "#9AA0B4")}</span>
               <div style="flex:1">
                 <div class="m-title">${m.title}</div>
                 <div class="m-time">${m.minutes} min</div>
@@ -549,12 +569,12 @@ function sidebarHTML() {
     <nav class="nav">
       ${NAV.map((item) => `
         <button class="nav-item ${state.view === item.key && !state.openCourseId ? "active" : ""}" onclick="App.setView('${item.key}')">
-          ${icon(item.icon, 17)} ${item.label}
+          ${icon(item.icon, 17, state.view === item.key && !state.openCourseId ? "#B45309" : "#5B6178")} ${item.label}
         </button>`).join("")}
     </nav>
     <div class="sidebar-footer">
       <div class="streak-card">
-        ${icon("flame", 18, "#F5A742")}
+        ${icon("flame", 18, "#B45309")}
         <div>
           <div class="title">6-day streak</div>
           <div class="sub">Keep it going today</div>
@@ -569,14 +589,14 @@ function topbarHTML() {
   return `
   <header class="topbar">
     <div class="topbar-left">
-      <button class="menu-btn" onclick="App.openMobileMenu()">${icon("menu", 22, "#F0EDE4")}</button>
+      <button class="menu-btn" onclick="App.openMobileMenu()">${icon("menu", 22, "#14161F")}</button>
       <div class="search-box">
-        ${icon("search", 15, "#8890AC")}
+        ${icon("search", 15, "#5B6178")}
         <input placeholder="Search courses, mentors..." />
       </div>
     </div>
     <div class="topbar-right">
-      ${icon("bell", 19, "#8890AC")}
+      ${icon("bell", 19, "#5B6178")}
       <div style="display:flex;align-items:center;gap:10px;">
         <div class="avatar">B</div>
         <span class="user-name">Brian</span>
